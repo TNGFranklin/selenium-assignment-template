@@ -1,0 +1,24 @@
+# Gradle build output
+build/
+.gradle/
+
+# IDE files
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+bin/
+
+# Test screenshots
+build/screenshots/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Compiled Java classes
+*.class
+
+# Log files
+*.log
