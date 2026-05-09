@@ -1,101 +1,75 @@
 package tests;
 
 import base.BaseTest;
-import config.ConfigReader;
 import org.testng.Assert;
 import org.testng.annotations.Test;
-import pages.HomePage;
+import pages.CustomerAccountPage;
 import pages.LoginPage;
-import utils.RandomDataGenerator;
+import pages.ManagerPage;
 
 /**
- * Tests for login functionality on demo.nopcommerce.com.
- * Covers: login form, failed login, logout, page title.
+ * Tests for login functionality on XYZ Bank.
+ * Covers: customer login (dropdown), manager login, logout, page title.
  */
 public class LoginTest extends BaseTest {
 
-    @Test(description = "Verify the login page title is correct")
+    @Test(description = "Verify the XYZ Bank login page title")
     public void verifyLoginPageTitle() {
-        driver.get(ConfigReader.getBaseUrl() + "/login");
         LoginPage loginPage = new LoginPage(driver);
-
         String title = loginPage.getPageTitle();
-        Assert.assertTrue(title.contains("Login"), "Page title should contain 'Login', got: " + title);
+        Assert.assertTrue(title.contains("XYZ Bank") || title.contains("GlobalSQA"),
+                "Page title should contain 'XYZ Bank' or 'GlobalSQA', got: " + title);
     }
 
-    @Test(description = "Login with invalid credentials shows error message")
-    public void loginWithInvalidCredentialsShowsError() {
-        driver.get(ConfigReader.getBaseUrl() + "/login");
+    @Test(description = "Verify Customer Login and Bank Manager Login buttons are present")
+    public void verifyLoginButtonsPresent() {
         LoginPage loginPage = new LoginPage(driver);
-
-        loginPage.loginWith("invalid@notexist.com", "wrongpassword123");
-
-        Assert.assertTrue(loginPage.isErrorDisplayed(),
-                "Error message should be displayed after invalid login");
+        Assert.assertTrue(loginPage.isCustomerLoginButtonVisible(),
+                "Customer Login button should be visible");
+        Assert.assertTrue(loginPage.isManagerLoginButtonVisible(),
+                "Bank Manager Login button should be visible");
     }
 
-    @Test(description = "Login with empty credentials shows validation error")
-    public void loginWithEmptyCredentialsShowsError() {
-        driver.get(ConfigReader.getBaseUrl() + "/login");
+    @Test(description = "Customer login with Harry Potter shows account dashboard")
+    public void customerLoginWithHarryPotter() {
         LoginPage loginPage = new LoginPage(driver);
+        CustomerAccountPage account = loginPage.loginAsCustomer("Harry Potter");
 
-        loginPage.clickLoginButton();
-
-        Assert.assertTrue(loginPage.isErrorDisplayed() ||
-                driver.getCurrentUrl().contains("login"),
-                "Should remain on login page or show error for empty credentials");
+        Assert.assertTrue(account.isAccountDashboardDisplayed(),
+                "Account dashboard should be displayed after customer login");
+        Assert.assertTrue(account.getWelcomeMessage().contains("Harry Potter"),
+                "Welcome message should contain customer name");
     }
 
-    @Test(description = "Register a new user then log in successfully",
-          groups = {"login"})
-    public void registerThenLoginSuccessfully() {
-        // Generate random credentials (random_data task)
-        String email    = RandomDataGenerator.generateEmail();
-        String password = RandomDataGenerator.generatePassword();
-        String firstName = RandomDataGenerator.generateFirstName();
-        String lastName  = RandomDataGenerator.generateLastName();
-
-        // Register
-        driver.get(ConfigReader.getBaseUrl() + "/register");
-        new pages.RegisterPage(driver).registerUser(firstName, lastName, email, password);
-
-        // Logout to get a clean state
-        driver.get(ConfigReader.getBaseUrl() + "/logout");
-
-        // Login with newly created credentials
-        driver.get(ConfigReader.getBaseUrl() + "/login");
+    @Test(description = "Customer login with Hermoine Granger shows account dashboard")
+    public void customerLoginWithHermoineGranger() {
         LoginPage loginPage = new LoginPage(driver);
-        HomePage homePage = loginPage.loginWith(email, password);
+        CustomerAccountPage account = loginPage.loginAsCustomer("Hermoine Granger");
 
-        Assert.assertTrue(homePage.isLoggedIn(),
-                "User should be logged in after successful login");
+        Assert.assertTrue(account.isAccountDashboardDisplayed(),
+                "Account dashboard should be displayed after login");
     }
 
-    @Test(description = "Logout from application and verify redirect to home page",
-          dependsOnMethods = {"registerThenLoginSuccessfully"},
-          groups = {"login"})
-    public void logoutSuccessfully() {
-        // Register and login first
-        String email    = RandomDataGenerator.generateEmail();
-        String password = RandomDataGenerator.generatePassword();
+    @Test(description = "Bank Manager login shows manager dashboard",
+          groups = {"manager"})
+    public void managerLoginShowsDashboard() {
+        LoginPage loginPage = new LoginPage(driver);
+        ManagerPage managerPage = loginPage.loginAsManager();
 
-        driver.get(ConfigReader.getBaseUrl() + "/register");
-        new pages.RegisterPage(driver).registerUser(
-                RandomDataGenerator.generateFirstName(),
-                RandomDataGenerator.generateLastName(),
-                email, password);
+        Assert.assertTrue(managerPage.isManagerPageDisplayed(),
+                "Manager dashboard should be displayed after manager login");
+    }
 
-        driver.get(ConfigReader.getBaseUrl() + "/logout");
-        driver.get(ConfigReader.getBaseUrl() + "/login");
-        new LoginPage(driver).loginWith(email, password);
+    @Test(description = "Customer logout returns to login page")
+    public void customerLogoutReturnsToLoginPage() {
+        LoginPage loginPage = new LoginPage(driver);
+        CustomerAccountPage account = loginPage.loginAsCustomer("Harry Potter");
 
-        // Logout
-        HomePage homePage = new HomePage(driver);
-        homePage.logout();
+        Assert.assertTrue(account.isLoggedIn(), "User should be logged in");
 
-        Assert.assertFalse(homePage.isLoggedIn(),
-                "User should be logged out after clicking logout");
-        Assert.assertTrue(driver.getCurrentUrl().contains(ConfigReader.getBaseUrl()),
-                "Should redirect to home page after logout");
+        LoginPage afterLogout = account.logout();
+
+        Assert.assertTrue(afterLogout.isCustomerLoginButtonVisible(),
+                "Should return to login page after logout");
     }
 }

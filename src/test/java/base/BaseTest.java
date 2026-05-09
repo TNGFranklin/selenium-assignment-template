@@ -11,7 +11,7 @@ import org.testng.annotations.BeforeMethod;
 import java.time.Duration;
 
 /**
- * BaseTest sets up and tears down the WebDriver for every test method.
+ * BaseTest sets up and tears down WebDriver for every test.
  * All test classes extend this to get a fresh browser per test.
  */
 public class BaseTest {
@@ -37,9 +37,10 @@ public class BaseTest {
         }
 
         driver = new ChromeDriver(options);
-        driver.manage().timeouts().implicitlyWait(
-                Duration.ofSeconds(ConfigReader.getImplicitWait()));
+        driver.manage().timeouts()
+              .implicitlyWait(Duration.ofSeconds(ConfigReader.getImplicitWait()));
         driver.manage().window().maximize();
+        driver.get(ConfigReader.getBaseUrl());
     }
 
     @AfterMethod

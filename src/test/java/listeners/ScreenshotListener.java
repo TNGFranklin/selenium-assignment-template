@@ -6,7 +6,6 @@ import org.openqa.selenium.WebDriver;
 import org.testng.ITestListener;
 import org.testng.ITestResult;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -23,39 +22,28 @@ public class ScreenshotListener implements ITestListener {
 
     @Override
     public void onTestFailure(ITestResult result) {
-        Object instance = result.getInstance();
-
-        // Try to get the WebDriver from the test class via reflection
         try {
             java.lang.reflect.Field driverField =
-                    instance.getClass().getSuperclass().getDeclaredField("driver");
+                    result.getInstance().getClass()
+                          .getSuperclass().getDeclaredField("driver");
             driverField.setAccessible(true);
-            WebDriver driver = (WebDriver) driverField.get(instance);
+            WebDriver driver = (WebDriver) driverField.get(result.getInstance());
 
             if (driver != null) {
-                takeScreenshot(driver, result.getName());
+                Files.createDirectories(Paths.get(SCREENSHOT_DIR));
+                java.io.File src =
+                        ((TakesScreenshot) driver).getScreenshotAs(OutputType.FILE);
+                String timestamp =
+                        new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+                String dest = SCREENSHOT_DIR + result.getName() + "_" + timestamp + ".png";
+                Files.copy(src.toPath(), Paths.get(dest));
+                System.out.println("Screenshot saved: " + dest);
             }
         } catch (Exception e) {
-            System.err.println("ScreenshotListener: could not capture screenshot — " + e.getMessage());
+            System.err.println("ScreenshotListener: " + e.getMessage());
         }
     }
 
-    private void takeScreenshot(WebDriver driver, String testName) {
-        try {
-            Files.createDirectories(Paths.get(SCREENSHOT_DIR));
-
-            File src = ((TakesScreenshot) driver).getScreenshotAs(OutputType.FILE);
-            String timestamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-            String fileName = SCREENSHOT_DIR + testName + "_" + timestamp + ".png";
-
-            Files.copy(src.toPath(), Paths.get(fileName));
-            System.out.println("Screenshot saved: " + fileName);
-        } catch (IOException e) {
-            System.err.println("ScreenshotListener: failed to save screenshot — " + e.getMessage());
-        }
-    }
-
-    // Unused lifecycle methods — required by ITestListener
     @Override public void onTestStart(ITestResult result) {}
     @Override public void onTestSuccess(ITestResult result) {}
     @Override public void onTestSkipped(ITestResult result) {}

@@ -18,7 +18,8 @@ public class BasePage {
 
     public BasePage(WebDriver driver) {
         this.driver = driver;
-        this.wait = new WebDriverWait(driver, Duration.ofSeconds(ConfigReader.getExplicitWait()));
+        this.wait = new WebDriverWait(driver,
+                Duration.ofSeconds(ConfigReader.getExplicitWait()));
     }
 
     /** Wait for element to be visible and return it. */
@@ -31,19 +32,16 @@ public class BasePage {
         return wait.until(ExpectedConditions.elementToBeClickable(locator));
     }
 
-    /** Wait for element to be present in DOM and return it. */
-    protected WebElement waitForPresent(By locator) {
-        return wait.until(ExpectedConditions.presenceOfElementLocated(locator));
-    }
-
-    /** Scroll to an element using JavascriptExecutor. */
+    /** Scroll to element using JavascriptExecutor. */
     protected void scrollToElement(WebElement element) {
-        ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true);", element);
+        ((JavascriptExecutor) driver)
+                .executeScript("arguments[0].scrollIntoView(true);", element);
     }
 
-    /** Click an element using JavascriptExecutor (for hidden/overlapped elements). */
+    /** Click element using JavascriptExecutor. */
     protected void jsClick(WebElement element) {
-        ((JavascriptExecutor) driver).executeScript("arguments[0].click();", element);
+        ((JavascriptExecutor) driver)
+                .executeScript("arguments[0].click();", element);
     }
 
     /** Get current page title. */
@@ -51,13 +49,8 @@ public class BasePage {
         return driver.getTitle();
     }
 
-    /** Get current page URL. */
+    /** Get current URL. */
     public String getCurrentUrl() {
         return driver.getCurrentUrl();
-    }
-
-    /** Navigate to a URL. */
-    public void navigateTo(String url) {
-        driver.get(url);
     }
 }

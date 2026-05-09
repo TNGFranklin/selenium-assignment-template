@@ -36,22 +36,6 @@ public class ConfigReader {
         return Boolean.parseBoolean(properties.getProperty("headless", "false"));
     }
 
-    public static String getTestEmail() {
-        return properties.getProperty("test.email");
-    }
-
-    public static String getTestPassword() {
-        return properties.getProperty("test.password");
-    }
-
-    public static String getTestFirstName() {
-        return properties.getProperty("test.firstname");
-    }
-
-    public static String getTestLastName() {
-        return properties.getProperty("test.lastname");
-    }
-
     public static int getImplicitWait() {
         return Integer.parseInt(properties.getProperty("implicit.wait", "10"));
     }

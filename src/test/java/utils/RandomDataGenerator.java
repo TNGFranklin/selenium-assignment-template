@@ -1,43 +1,46 @@
 package utils;
 
 import java.util.Random;
-import java.util.UUID;
 
 /**
- * Generates random test data so each test run uses unique credentials.
- * This avoids conflicts on the shared demo store that resets every hour.
+ * Generates random test data for use in tests.
+ * Avoids hardcoded values and makes each test run unique.
  */
 public class RandomDataGenerator {
 
     private static final Random random = new Random();
 
-    /** Generate a unique email address for registration. */
-    public static String generateEmail() {
-        String uid = UUID.randomUUID().toString().substring(0, 8);
-        return "testuser_" + uid + "@mailinator.com";
-    }
-
-    /** Generate a random first name from a fixed list. */
+    /** Generate a random first name. */
     public static String generateFirstName() {
         String[] names = {"Alice", "Bob", "Carol", "David", "Eve",
                           "Frank", "Grace", "Henry", "Iris", "Jack"};
         return names[random.nextInt(names.length)];
     }
 
-    /** Generate a random last name from a fixed list. */
+    /** Generate a random last name. */
     public static String generateLastName() {
         String[] names = {"Smith", "Johnson", "Williams", "Brown", "Jones",
                           "Garcia", "Miller", "Davis", "Wilson", "Taylor"};
         return names[random.nextInt(names.length)];
     }
 
-    /** Generate a valid password that meets nopCommerce requirements. */
-    public static String generatePassword() {
-        // nopCommerce requires at least 6 characters
-        return "Test" + random.nextInt(9000 + 1000) + "!";
+    /** Generate a random UK-style post code. */
+    public static String generatePostCode() {
+        String[] letters = {"A", "B", "C", "D", "E", "F", "G", "H"};
+        return letters[random.nextInt(letters.length)] +
+               letters[random.nextInt(letters.length)] +
+               (random.nextInt(9) + 1) + " " +
+               (random.nextInt(9) + 1) +
+               letters[random.nextInt(letters.length)] +
+               letters[random.nextInt(letters.length)];
     }
 
-    /** Generate a random integer between min and max (inclusive). */
+    /** Generate a random deposit amount between 100 and 1000. */
+    public static String generateAmount() {
+        return String.valueOf(100 + random.nextInt(900));
+    }
+
+    /** Generate a random integer between min and max inclusive. */
     public static int randomInt(int min, int max) {
         return min + random.nextInt(max - min + 1);
     }
