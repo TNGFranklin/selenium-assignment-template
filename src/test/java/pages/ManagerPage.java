@@ -1,167 +1,120 @@
-package tests;
+package pages;
 
-import base.BaseTest;
 import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
-import org.testng.Assert;
-import org.testng.annotations.Test;
-import pages.LoginPage;
-import pages.ManagerPage;
-import utils.RandomDataGenerator;
+import org.openqa.selenium.support.ui.Select;
 
 import java.util.List;
 
 /**
- * Tests for Bank Manager functionality on XYZ Bank.
- * Covers: add customer form, open account, customer list, sorting, search.
+ * Page Object for the Bank Manager page.
+ * Contains Add Customer, Open Account, and Customers sections.
  */
-public class ManagerTest extends BaseTest {
+public class ManagerPage extends BasePage {
 
-    private ManagerPage getManagerPage() {
-        return new LoginPage(driver).loginAsManager();
+    private final By addCustomerBtn    = By.xpath("//button[contains(text(),'Add Customer')]");
+    private final By openAccountBtn    = By.xpath("//button[contains(text(),'Open Account')]");
+    private final By customersBtn      = By.xpath("//button[contains(text(),'Customers')]");
+
+    // Add Customer form
+    private final By firstNameInput    = By.xpath("//input[@placeholder='First Name']");
+    private final By lastNameInput     = By.xpath("//input[@placeholder='Last Name']");
+    private final By postCodeInput     = By.xpath("//input[@placeholder='Post Code']");
+    private final By addCustomerSubmit = By.xpath("//button[@type='submit' and contains(text(),'Add Customer')]");
+
+    // Open Account form
+    private final By customerSelect    = By.id("userSelect");
+    private final By currencySelect    = By.id("currency");
+    private final By processBtn        = By.xpath("//button[@type='submit' and contains(text(),'Process')]");
+
+    // Customers table
+    private final By customerRows      = By.xpath("//table/tbody/tr");
+    private final By searchInput       = By.xpath("//input[@placeholder='Search Customer']");
+    private final By sortFirstName     = By.xpath("//a[contains(text(),'First Name')]");
+
+    public ManagerPage(WebDriver driver) {
+        super(driver);
     }
 
-    @Test(description = "Manager can navigate to Add Customer form")
-    public void managerCanOpenAddCustomerForm() {
-        ManagerPage manager = getManagerPage();
-        manager.clickAddCustomer();
-
-        WebElement firstNameField = driver.findElement(
-                By.xpath("//input[@placeholder='First Name']"));
-        Assert.assertTrue(firstNameField.isDisplayed(),
-                "First Name field should be visible after clicking Add Customer");
+    /** Click Add Customer button. */
+    public void clickAddCustomer() {
+        waitForClickable(addCustomerBtn).click();
     }
 
-    @Test(description = "Add Customer form has First Name, Last Name, Post Code inputs")
-    public void addCustomerFormHasRequiredInputFields() {
-        ManagerPage manager = getManagerPage();
-        manager.clickAddCustomer();
+    /** Fill and submit the Add Customer form. */
+    public void addCustomer(String firstName, String lastName, String postCode) {
+        clickAddCustomer();
 
-        // fill_input: text fields (First Name, Last Name, Post Code)
-        Assert.assertTrue(
-                driver.findElement(By.xpath("//input[@placeholder='First Name']")).isDisplayed(),
-                "First Name input should be present");
-        Assert.assertTrue(
-                driver.findElement(By.xpath("//input[@placeholder='Last Name']")).isDisplayed(),
-                "Last Name input should be present");
-        Assert.assertTrue(
-                driver.findElement(By.xpath("//input[@placeholder='Post Code']")).isDisplayed(),
-                "Post Code input should be present");
+        WebElement fn = waitForVisible(firstNameInput);
+        fn.clear();
+        fn.sendKeys(firstName);
+
+        WebElement ln = waitForVisible(lastNameInput);
+        ln.clear();
+        ln.sendKeys(lastName);
+
+        WebElement pc = waitForVisible(postCodeInput);
+        pc.clear();
+        pc.sendKeys(postCode);
+
+        waitForClickable(addCustomerSubmit).click();
     }
 
-    @Test(description = "Add a new customer with random data and confirm alert")
-    public void addNewCustomerWithRandomData() {
-        // random_data task — generate unique customer details
-        String firstName = RandomDataGenerator.generateFirstName();
-        String lastName  = RandomDataGenerator.generateLastName();
-        String postCode  = RandomDataGenerator.generatePostCode();
-
-        ManagerPage manager = getManagerPage();
-        manager.addCustomer(firstName, lastName, postCode);
-
-        // nopCommerce shows an alert on success
-        try {
-            String alertText = driver.switchTo().alert().getText();
-            System.out.println("Alert: " + alertText);
-            Assert.assertFalse(alertText.isEmpty(), "Success alert should appear");
-            driver.switchTo().alert().accept();
-        } catch (Exception e) {
-            // Some browsers handle it differently
-            System.out.println("No alert found, continuing: " + e.getMessage());
-        }
+    /** Click Open Account button. */
+    public void clickOpenAccount() {
+        waitForClickable(openAccountBtn).click();
     }
 
-    @Test(description = "Open Account form has customer dropdown and currency dropdown")
-    public void openAccountFormHasDropdowns() {
-        ManagerPage manager = getManagerPage();
-        manager.clickOpenAccount();
+    /** Open an account for a customer with given currency. */
+    public void openAccount(String customerName, String currency) {
+        clickOpenAccount();
 
-        // dropdown task — both are Select dropdowns
-        WebElement customerDropdown = driver.findElement(By.id("userSelect"));
-        WebElement currencyDropdown = driver.findElement(By.id("currency"));
+        Select custSel = new Select(waitForVisible(customerSelect));
+        custSel.selectByVisibleText(customerName);
 
-        Assert.assertTrue(customerDropdown.isDisplayed(),
-                "Customer dropdown should be visible");
-        Assert.assertTrue(currencyDropdown.isDisplayed(),
-                "Currency dropdown should be visible");
+        Select currSel = new Select(waitForVisible(currencySelect));
+        currSel.selectByVisibleText(currency);
+
+        waitForClickable(processBtn).click();
     }
 
-    @Test(description = "Open an account for Harry Potter with Dollar currency")
-    public void openAccountForHarryPotter() {
-        ManagerPage manager = getManagerPage();
-        manager.openAccount("Harry Potter", "Dollar");
-
-        try {
-            String alertText = driver.switchTo().alert().getText();
-            System.out.println("Open Account alert: " + alertText);
-            Assert.assertTrue(alertText.contains("Account") || alertText.contains("created"),
-                    "Alert should confirm account creation");
-            driver.switchTo().alert().accept();
-        } catch (Exception e) {
-            System.out.println("Alert handling: " + e.getMessage());
-        }
+    /** Click Customers button to view customer list. */
+    public void clickCustomers() {
+        waitForClickable(customersBtn).click();
     }
 
-    @Test(description = "Customer list table shows existing customers")
-    public void customerListShowsExistingCustomers() {
-        ManagerPage manager = getManagerPage();
-        manager.clickCustomers();
-
-        List<WebElement> rows = manager.getCustomerRows();
-        Assert.assertFalse(rows.isEmpty(),
-                "Customer table should show at least one customer");
-        System.out.println("Total customers in table: " + rows.size());
+    /** Get count of customer rows in the table. */
+    public int getCustomerCount() {
+        clickCustomers();
+        return driver.findElements(customerRows).size();
     }
 
-    @Test(description = "Search customer filters the customer table")
-    public void searchCustomerFiltersTable() {
-        ManagerPage manager = getManagerPage();
-        manager.searchCustomer("Harry");
-
-        List<WebElement> rows = manager.getCustomerRows();
-        Assert.assertFalse(rows.isEmpty(),
-                "Searching for 'Harry' should return at least one result");
+    /** Search for a customer by name. */
+    public void searchCustomer(String name) {
+        clickCustomers();
+        WebElement search = waitForVisible(searchInput);
+        search.clear();
+        search.sendKeys(name);
     }
 
-    @Test(description = "Sort customer list by First Name using complex XPath")
-    public void sortCustomersByFirstName() {
-        ManagerPage manager = getManagerPage();
-        manager.clickCustomers();
-
-        // complex_xpath: sort header — plain th link text
-        WebElement sortLink = driver.findElement(
-                By.xpath("//td[contains(text(),'First Name')] | //a[contains(text(),'First Name')] | //button[contains(text(),'First Name')]"));
-        if (sortLink != null) {
-            sortLink.click();
-        }
-
-        List<WebElement> rows = manager.getCustomerRows();
-        Assert.assertFalse(rows.isEmpty(), "Table should still have rows after sorting");
+    /** Get all customer rows. */
+    public List<WebElement> getCustomerRows() {
+        return driver.findElements(customerRows);
     }
 
-    @Test(description = "Use complex XPath to find delete buttons in customer table")
-    public void findDeleteButtonsUsingComplexXPath() {
-        ManagerPage manager = getManagerPage();
-        manager.clickCustomers();
-
-        // complex_xpath: delete buttons inside table rows
-        List<WebElement> deleteButtons = driver.findElements(
-                By.xpath("//table/tbody/tr/td/button[contains(text(),'Delete')]"));
-        System.out.println("Delete buttons found: " + deleteButtons.size());
-        Assert.assertNotNull(deleteButtons,
-                "Complex XPath should find delete buttons in table");
+    /** Sort customer list by first name. */
+    public void sortByFirstName() {
+        waitForClickable(sortFirstName).click();
     }
 
-    @Test(description = "Use complex XPath to find customer first names in table")
-    public void findCustomerNamesUsingComplexXPath() {
-        ManagerPage manager = getManagerPage();
-        manager.clickCustomers();
+    /** Check if Add Customer button is visible. */
+    public boolean isManagerPageDisplayed() {
+        return !driver.findElements(addCustomerBtn).isEmpty();
+    }
 
-        // complex_xpath: first cell of each table row
-        List<WebElement> firstNames = driver.findElements(
-                By.xpath("//table/tbody/tr/td[1]"));
-        Assert.assertFalse(firstNames.isEmpty(),
-                "Complex XPath should find first name cells in customer table");
-        System.out.println("Customer first names found: " + firstNames.size());
+    /** Click Home button. */
+    public void goHome() {
+        driver.findElement(By.xpath("//button[contains(text(),'Home')]")).click();
     }
 }

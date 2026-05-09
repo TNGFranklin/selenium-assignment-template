@@ -128,10 +128,8 @@ public class ManagerTest extends BaseTest {
         ManagerPage manager = getManagerPage();
         manager.clickCustomers();
 
-        // complex_xpath: sort header link
-        WebElement sortLink = driver.findElement(
-                By.xpath("//table//th//a[contains(text(),'First Name')]"));
-        sortLink.click();
+        // complex_xpath: sort header link — use page object which has the correct locator
+        manager.sortByFirstName();
 
         List<WebElement> rows = manager.getCustomerRows();
         Assert.assertFalse(rows.isEmpty(), "Table should still have rows after sorting");
