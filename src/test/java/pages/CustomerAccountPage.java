@@ -10,9 +10,8 @@ import org.openqa.selenium.WebElement;
  */
 public class CustomerAccountPage extends BasePage {
 
-    private final By welcomeMessage    = By.cssSelector("div.center strong");
+    private final By welcomeMessage    = By.cssSelector("span.ng-binding");
     private final By accountDropdown   = By.id("accountSelect");
-    private final By balanceText       = By.cssSelector("div.center strong:nth-child(2)");
     private final By transactionsBtn   = By.xpath("//button[contains(text(),'Transactions')]");
     private final By depositBtn        = By.xpath("//button[contains(text(),'Deposit')]");
     private final By withdrawlBtn      = By.xpath("//button[contains(text(),'Withdrawl')]");
@@ -29,7 +28,9 @@ public class CustomerAccountPage extends BasePage {
 
     /** Get the welcome message text. */
     public String getWelcomeMessage() {
-        return waitForVisible(welcomeMessage).getText();
+        // The heading is like "Welcome Harry Potter !!"
+        WebElement heading = waitForVisible(By.xpath("//div[@class='center']/h2"));
+        return heading.getText();
     }
 
     /** Check if account dashboard is displayed. */
