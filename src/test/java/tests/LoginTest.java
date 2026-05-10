@@ -60,28 +60,34 @@ public class LoginTest extends BaseTest {
                 "Manager dashboard should be displayed after manager login");
     }
 
-    @Test(description = "Customer logout removes account dashboard from view")
+    @Test(description = "Customer logout returns to customer selection screen")
     public void customerLogoutReturnsToLoginPage() {
         LoginPage loginPage = new LoginPage(driver);
         CustomerAccountPage account = loginPage.loginAsCustomer("Harry Potter");
 
-        // Verify logged in — deposit button visible
         Assert.assertTrue(account.isAccountDashboardDisplayed(),
                 "Deposit button should be visible before logout");
 
-        // Click logout
+        // Click logout — app goes back to customer dropdown page
         account.logout();
 
-        // Wait for deposit button to disappear — confirms logout worked
+        // Wait for Logout button to disappear
         new WebDriverWait(driver, Duration.ofSeconds(15))
                 .until(ExpectedConditions.invisibilityOfElementLocated(
-                        By.xpath("//button[contains(text(),'Deposit')]")));
+                        By.xpath("//button[contains(text(),'Logout')]")));
 
-        // Verify deposit button is gone
-        Assert.assertTrue(
-                driver.findElements(By.xpath("//button[contains(text(),'Deposit')]")).isEmpty(),
-                "Deposit button should be gone after logout");
-
+        // Verify URL is on customer selection page (#/customer)
         System.out.println("URL after logout: " + driver.getCurrentUrl());
+        Assert.assertTrue(
+                driver.getCurrentUrl().contains("#/customer") ||
+                driver.getCurrentUrl().contains("#/login"),
+                "After logout should be on customer or login page, got: "
+                        + driver.getCurrentUrl());
+
+        // Verify Deposit button is gone (no longer on account page)
+        Assert.assertTrue(
+                driver.findElements(By.xpath(
+                        "//button[contains(text(),'Deposit')]")).isEmpty(),
+                "Deposit button should not be visible after logout");
     }
 }
