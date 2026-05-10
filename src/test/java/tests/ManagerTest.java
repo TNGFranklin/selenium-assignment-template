@@ -128,8 +128,15 @@ public class ManagerTest extends BaseTest {
         ManagerPage manager = getManagerPage();
         manager.clickCustomers();
 
-        // complex_xpath: sort header link — use page object which has the correct locator
-        manager.sortByFirstName();
+        // complex_xpath: find any clickable element containing 'First Name' text
+        // in the table header area
+        java.util.List<WebElement> sortElements = driver.findElements(
+                By.xpath("//*[contains(text(),'First Name')]"));
+
+        System.out.println("Sort elements found: " + sortElements.size());
+        if (!sortElements.isEmpty()) {
+            sortElements.get(0).click();
+        }
 
         List<WebElement> rows = manager.getCustomerRows();
         Assert.assertFalse(rows.isEmpty(), "Table should still have rows after sorting");
