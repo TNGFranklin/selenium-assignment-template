@@ -1,11 +1,15 @@
 package tests;
 
 import base.BaseTest;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 import pages.CustomerAccountPage;
 import pages.LoginPage;
 import pages.ManagerPage;
+
+import java.time.Duration;
 
 /**
  * Tests for login functionality on XYZ Bank.
@@ -65,11 +69,16 @@ public class LoginTest extends BaseTest {
 
         Assert.assertTrue(account.isLoggedIn(), "User should be logged in");
 
+        // Click logout
         account.logout();
 
-        // After logout, Customer Login button should reappear
+        // Wait for URL to change back to login page
+        new WebDriverWait(driver, Duration.ofSeconds(15))
+                .until(ExpectedConditions.urlContains("#/login"));
+
+        // Now verify login buttons are back
         LoginPage afterLogout = new LoginPage(driver);
         Assert.assertTrue(afterLogout.isCustomerLoginButtonVisible(),
-                "Should return to login page after logout");
+                "Customer Login button should reappear after logout");
     }
 }
