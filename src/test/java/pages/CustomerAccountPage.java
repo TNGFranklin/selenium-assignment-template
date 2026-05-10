@@ -10,7 +10,6 @@ import org.openqa.selenium.WebElement;
  */
 public class CustomerAccountPage extends BasePage {
 
-    private final By welcomeMessage    = By.cssSelector("span.ng-binding");
     private final By accountDropdown   = By.id("accountSelect");
     private final By transactionsBtn   = By.xpath("//button[contains(text(),'Transactions')]");
     private final By depositBtn        = By.xpath("//button[contains(text(),'Deposit')]");
@@ -26,16 +25,27 @@ public class CustomerAccountPage extends BasePage {
         super(driver);
     }
 
-    /** Get the welcome message text. */
+    /** Get the welcome message text. Waits for page load then reads customer name. */
     public String getWelcomeMessage() {
-        // The heading is like "Welcome Harry Potter !!"
-        WebElement heading = waitForVisible(By.xpath("//div[@class='center']/h2"));
-        return heading.getText();
+        // Wait for page to fully load by waiting for logout button
+        waitForVisible(logoutBtn);
+        // Customer name appears in strong tags inside center div
+        java.util.List<WebElement> strongs = driver.findElements(
+                By.xpath("//div[contains(@class,'center')]//strong"));
+        if (!strongs.isEmpty()) {
+            return strongs.get(0).getText();
+        }
+        return driver.findElement(By.tagName("body")).getText();
     }
 
     /** Check if account dashboard is displayed. */
     public boolean isAccountDashboardDisplayed() {
-        return !driver.findElements(depositBtn).isEmpty();
+        try {
+            waitForVisible(depositBtn);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     /** Click Deposit button and deposit an amount. */
@@ -74,7 +84,12 @@ public class CustomerAccountPage extends BasePage {
 
     /** Check if logout button is visible (user is logged in). */
     public boolean isLoggedIn() {
-        return !driver.findElements(logoutBtn).isEmpty();
+        try {
+            waitForVisible(logoutBtn);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     /** Get the account body element for JS scroll testing. */
